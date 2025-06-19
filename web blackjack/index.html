@@ -23,8 +23,16 @@
       margin-top: 20px;
       font-size: 20px;
       font-weight: bold;
-      color: #1a73e8;
       white-space: pre-wrap;
+    }
+    .verde {
+      color: green;
+    }
+    .amarillo {
+      color: goldenrod;
+    }
+    .rojo {
+      color: red;
     }
     #estadisticas {
       margin-top: 30px;
@@ -57,6 +65,17 @@
     let totalManos = 0;
     let manosGanadas = 0;
 
+    const winChances = {};
+    for (let total = 4; total <= 21; total++) {
+      winChances[total] = {};
+      for (let dealer = 2; dealer <= 11; dealer++) {
+        let prob = 0.42 + ((21 - total) * 0.015) - ((dealer - 2) * 0.005);
+        if (prob > 0.7) prob = 0.7;
+        if (prob < 0.1) prob = 0.1;
+        winChances[total][dealer] = parseFloat(prob.toFixed(2));
+      }
+    }
+
     function valorCarta(carta) {
       if (carta === 'A') return 11;
       if (["J", "Q", "K"].includes(carta)) return 10;
@@ -75,78 +94,73 @@
       const valorCrupier = valorCarta(crupierCarta);
       let tipoMano = "HARD";
 
-      if (tieneAs && total <= 21 && jugadorCartas.length === 2) {
+      if (tieneAs && total <= 21) {
         tipoMano = "SOFT";
-      }
-
-      if (jugadorCartas.length === 2 && jugadorCartas[0] === jugadorCartas[1]) {
-        tipoMano = "PAIR";
+        if (total > 21) total -= 10;
       }
 
       let resultado = `Tu total: ${total}\n`;
-
-      if (tipoMano === "PAIR") {
-        switch (jugadorCartas[0]) {
-          case "A":
-          case "8": resultado += "✅ Split (Dividir)"; break;
-          case "10": resultado += "✅ Plantarse (Stand)"; break;
-          case "9": resultado += (valorCrupier >= 2 && valorCrupier <= 6 || valorCrupier === 8 || valorCrupier === 9) ? "✅ Split" : "✅ Plantarse"; break;
-          case "7": resultado += (valorCrupier <= 7) ? "✅ Split" : "✅ Pedir (Hit)"; break;
-          case "6": resultado += (valorCrupier >= 2 && valorCrupier <= 6) ? "✅ Split" : "✅ Pedir (Hit)"; break;
-          case "4": resultado += (valorCrupier === 5 || valorCrupier === 6) ? "✅ Split" : "✅ Pedir (Hit)"; break;
-          case "3":
-          case "2": resultado += (valorCrupier >= 2 && valorCrupier <= 7) ? "✅ Split" : "✅ Pedir (Hit)"; break;
-          case "5": resultado += "✅ Doblar si puedes, si no pedir (5-5 no se divide)"; break;
-          default: resultado += "🤷 Mano no reconocida";
-        }
-      } else if (tipoMano === "SOFT") {
-        switch (total) {
-          case 13:
-          case 14: resultado += (valorCrupier >= 5 && valorCrupier <= 6) ? "✅ Doblar" : "✅ Pedir"; break;
-          case 15:
-          case 16: resultado += (valorCrupier >= 4 && valorCrupier <= 6) ? "✅ Doblar" : "✅ Pedir"; break;
-          case 17: resultado += (valorCrupier >= 3 && valorCrupier <= 6) ? "✅ Doblar" : "✅ Pedir"; break;
-          case 18:
-            if (valorCrupier >= 9 || valorCrupier === 1) resultado += "✅ Pedir";
-            else if (valorCrupier === 2 || valorCrupier === 7 || valorCrupier === 8) resultado += "✅ Plantarse";
-            else resultado += "✅ Doblar";
-            break;
-          case 19:
-          case 20:
-          case 21: resultado += "✅ Plantarse"; break;
-          default: resultado += "🤷 Mano blanda no reconocida";
+      const probabilidad = winChances[total]?.[valorCrupier];
+      let claseColor = "";
+      let emojiRiesgo = "";
+      if (probabilidad) {
+        const porcentaje = (probabilidad * 100).toFixed(1);
+        resultado += `📊 Probabilidad estimada de ganar: ${porcentaje}%\n`;
+        if (probabilidad >= 0.6) {
+          claseColor = "verde";
+          emojiRiesgo = "🟢 Alta probabilidad";
+        } else if (probabilidad >= 0.4) {
+          claseColor = "amarillo";
+          emojiRiesgo = "🟡 Riesgo medio";
+        } else {
+          claseColor = "rojo";
+          emojiRiesgo = "🔴 Alta probabilidad de perder";
         }
       } else {
-        switch (total) {
-          case 4:
-          case 5:
-          case 6:
-          case 7:
-          case 8: resultado += "✅ Pedir"; break;
-          case 9: resultado += (valorCrupier >= 3 && valorCrupier <= 6) ? "✅ Doblar" : "✅ Pedir"; break;
-          case 10: resultado += (valorCrupier <= 9) ? "✅ Doblar" : "✅ Pedir"; break;
-          case 11: resultado += (valorCrupier <= 10) ? "✅ Doblar" : "✅ Pedir"; break;
-          case 12: resultado += (valorCrupier >= 4 && valorCrupier <= 6) ? "✅ Plantarse" : "✅ Pedir"; break;
-          case 13:
-          case 14:
-          case 15:
-          case 16: resultado += (valorCrupier >= 2 && valorCrupier <= 6) ? "✅ Plantarse" : "✅ Pedir"; break;
-          case 17:
-          case 18:
-          case 19:
-          case 20:
-          case 21: resultado += "✅ Plantarse"; break;
-          default: resultado += "🤷 Total no reconocido";
+        resultado += `📊 Probabilidad no disponible\n`;
+        claseColor = "rojo";
+        emojiRiesgo = "🔴 Alta probabilidad de perder";
+      }
+
+      let recomendacion = "";
+      if (tipoMano === "SOFT") {
+        if (total <= 17) {
+          recomendacion = "✅ Recomendación: Pedir carta (HIT)";
+        } else if (total === 18) {
+          if (valorCrupier >= 9 || valorCrupier === 11) {
+            recomendacion = "✅ Recomendación: Pedir carta (HIT)";
+          } else {
+            recomendacion = "✅ Recomendación: Plantarse (STAND)";
+          }
+        } else {
+          recomendacion = "✅ Recomendación: Plantarse (STAND)";
+        }
+      } else {
+        if (total <= 11) {
+          recomendacion = "✅ Recomendación: Pedir carta (HIT)";
+        } else if (total >= 17) {
+          recomendacion = "✅ Recomendación: Plantarse (STAND)";
+        } else if (total >= 12 && total <= 16) {
+          if (valorCrupier >= 2 && valorCrupier <= 6) {
+            recomendacion = "✅ Recomendación: Plantarse (STAND)";
+          } else {
+            recomendacion = "✅ Recomendación: Pedir carta (HIT)";
+          }
         }
       }
 
-      document.getElementById("resultado").innerText = resultado;
+      resultado += `${recomendacion}\n${emojiRiesgo}`;
+      const divResultado = document.getElementById("resultado");
+      divResultado.className = claseColor;
+      divResultado.innerText = resultado;
     }
 
     function reiniciar() {
       document.getElementById("jugador").value = "";
       document.getElementById("crupier").value = "";
-      document.getElementById("resultado").innerText = "";
+      const divResultado = document.getElementById("resultado");
+      divResultado.innerText = "";
+      divResultado.className = "";
     }
 
     function registrar(ganada) {
