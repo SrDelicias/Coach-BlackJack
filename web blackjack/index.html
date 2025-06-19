@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blackjack Coach</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      color: #333;
+    }
+    input, select, button {
+      font-size: 16px;
+      margin: 10px;
+      padding: 10px;
+    }
+    #resultado {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #1a73e8;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧠 Blackjack Coach</h1>
+  <p>Introduce tu mano y la del crupier:</p>
+
+  <input id="jugador" type="text" placeholder="Ej: A, 7">
+  <input id="crupier" type="text" placeholder="Carta del crupier (Ej: 10, A, 4)">
+  <button onclick="calcularJugada()">Ver Jugada Óptima</button>
+  <button onclick="reiniciar()">Reiniciar</button>
+
+  <div id="resultado"></div>
+
+  <script>
+    function valorCarta(carta) {
+      if (carta === 'A') return 11;
+      if (["J", "Q", "K"].includes(carta)) return 10;
+      return parseInt(carta);
+    }
+
+    function calcularJugada() {
+      const jugadorInput = document.getElementById("jugador").value;
+      const crupierInput = document.getElementById("crupier").value;
+      const jugadorCartas = jugadorInput.split(",").map(c => c.trim().toUpperCase());
+      const crupierCarta = crupierInput.trim().toUpperCase();
+
+      const valores = jugadorCartas.map(valorCarta);
+      let total = valores.reduce((a, b) => a + b, 0);
+      const tieneAs = jugadorCartas.includes("A");
+      const valorCrupier = valorCarta(crupierCarta);
+      let tipoMano = "HARD";
+
+      if (tieneAs && total <= 21 && jugadorCartas.length === 2) {
+        tipoMano = "SOFT";
+      }
+
+      if (jugadorCartas.length === 2 && jugadorCartas[0] === jugadorCartas[1]) {
+        tipoMano = "PAIR";
+      }
+
+      let resultado = `Tu total: ${total}\n`;
+
+      // Lógica completa básica
+      if (tipoMano === "PAIR") {
+        switch (jugadorCartas[0]) {
+          case "A":
+          case "8": resultado += "✅ Split (Dividir)"; break;
+          case "10": resultado += "✅ Plantarse (Stand)"; break;
+          case "9": resultado += (valorCrupier >= 2 && valorCrupier <= 6 || valorCrupier === 8 || valorCrupier === 9) ? "✅ Split" : "✅ Plantarse"; break;
+          case "7": resultado += (valorCrupier <= 7) ? "✅ Split" : "✅ Pedir (Hit)"; break;
+          case "6": resultado += (valorCrupier >= 2 && valorCrupier <= 6) ? "✅ Split" : "✅ Pedir (Hit)"; break;
+          case "4": resultado += (valorCrupier === 5 || valorCrupier === 6) ? "✅ Split" : "✅ Pedir (Hit)"; break;
+          case "3":
+          case "2": resultado += (valorCrupier >= 2 && valorCrupier <= 7) ? "✅ Split" : "✅ Pedir (Hit)"; break;
+          case "5": resultado += "✅ Doblar si puedes, si no pedir (5-5 no se divide)"; break;
+          default: resultado += "🤷 Mano no reconocida";
+        }
+      } else if (tipoMano === "SOFT") {
+        switch (total) {
+          case 13:
+          case 14: resultado += (valorCrupier >= 5 && valorCrupier <= 6) ? "✅ Doblar" : "✅ Pedir"; break;
+          case 15:
+          case 16: resultado += (valorCrupier >= 4 && valorCrupier <= 6) ? "✅ Doblar" : "✅ Pedir"; break;
+          case 17: resultado += (valorCrupier >= 3 && valorCrupier <= 6) ? "✅ Doblar" : "✅ Pedir"; break;
+          case 18:
+            if (valorCrupier >= 9 || valorCrupier === 1) resultado += "✅ Pedir";
+            else if (valorCrupier === 2 || valorCrupier === 7 || valorCrupier === 8) resultado += "✅ Plantarse";
+            else resultado += "✅ Doblar";
+            break;
+          case 19:
+          case 20:
+          case 21: resultado += "✅ Plantarse"; break;
+          default: resultado += "🤷 Mano blanda no reconocida";
+        }
+      } else {
+        switch (total) {
+          case 8:
+          case 7:
+          case 6:
+          case 5:
+          case 4: resultado += "✅ Pedir"; break;
+          case 9: resultado += (valorCrupier >= 3 && valorCrupier <= 6) ? "✅ Doblar" : "✅ Pedir"; break;
+          case 10: resultado += (valorCrupier <= 9) ? "✅ Doblar" : "✅ Pedir"; break;
+          case 11: resultado += (valorCrupier <= 10) ? "✅ Doblar" : "✅ Pedir"; break;
+          case 12: resultado += (valorCrupier >= 4 && valorCrupier <= 6) ? "✅ Plantarse" : "✅ Pedir"; break;
+          case 13:
+          case 14:
+          case 15:
+          case 16: resultado += (valorCrupier >= 2 && valorCrupier <= 6) ? "✅ Plantarse" : "✅ Pedir"; break;
+          case 17:
+          case 18:
+          case 19:
+          case 20:
+          case 21: resultado += "✅ Plantarse"; break;
+          default: resultado += "🤷 Total no reconocido";
+        }
+      }
+
+      document.getElementById("resultado").innerText = resultado;
+    }
+
+    function reiniciar() {
+      document.getElementById("jugador").value = "";
+      document.getElementById("crupier").value = "";
+      document.getElementById("resultado").innerText = "";
+    }
+  </script>
+</body>
+</html>
