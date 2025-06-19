@@ -26,6 +26,11 @@
       color: #1a73e8;
       white-space: pre-wrap;
     }
+    #estadisticas {
+      margin-top: 30px;
+      font-size: 18px;
+      color: #333;
+    }
   </style>
 </head>
 <body>
@@ -39,7 +44,19 @@
 
   <div id="resultado"></div>
 
+  <div id="estadisticas">
+    <h3>📈 Estadísticas de tus partidas</h3>
+    <p>Manos jugadas: <span id="total">0</span></p>
+    <p>Ganadas: <span id="ganadas">0</span></p>
+    <p>Porcentaje de acierto: <span id="porcentaje">0%</span></p>
+    <button onclick="registrar(true)">✅ Gané esta mano</button>
+    <button onclick="registrar(false)">❌ Perdí esta mano</button>
+  </div>
+
   <script>
+    let totalManos = 0;
+    let manosGanadas = 0;
+
     function valorCarta(carta) {
       if (carta === 'A') return 11;
       if (["J", "Q", "K"].includes(carta)) return 10;
@@ -68,7 +85,6 @@
 
       let resultado = `Tu total: ${total}\n`;
 
-      // Lógica completa básica
       if (tipoMano === "PAIR") {
         switch (jugadorCartas[0]) {
           case "A":
@@ -102,11 +118,11 @@
         }
       } else {
         switch (total) {
-          case 8:
-          case 7:
-          case 6:
+          case 4:
           case 5:
-          case 4: resultado += "✅ Pedir"; break;
+          case 6:
+          case 7:
+          case 8: resultado += "✅ Pedir"; break;
           case 9: resultado += (valorCrupier >= 3 && valorCrupier <= 6) ? "✅ Doblar" : "✅ Pedir"; break;
           case 10: resultado += (valorCrupier <= 9) ? "✅ Doblar" : "✅ Pedir"; break;
           case 11: resultado += (valorCrupier <= 10) ? "✅ Doblar" : "✅ Pedir"; break;
@@ -131,6 +147,15 @@
       document.getElementById("jugador").value = "";
       document.getElementById("crupier").value = "";
       document.getElementById("resultado").innerText = "";
+    }
+
+    function registrar(ganada) {
+      totalManos++;
+      if (ganada) manosGanadas++;
+      document.getElementById("total").innerText = totalManos;
+      document.getElementById("ganadas").innerText = manosGanadas;
+      const porcentaje = ((manosGanadas / totalManos) * 100).toFixed(2);
+      document.getElementById("porcentaje").innerText = `${porcentaje}%`;
     }
   </script>
 </body>
