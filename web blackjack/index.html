@@ -39,6 +39,12 @@
       font-size: 18px;
       color: #333;
     }
+    .comentario {
+      font-size: 16px;
+      font-weight: normal;
+      color: #555;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -103,6 +109,7 @@
       const probabilidad = winChances[total]?.[valorCrupier];
       let claseColor = "";
       let emojiRiesgo = "";
+      let comentarioExtra = "";
       if (probabilidad) {
         const porcentaje = (probabilidad * 100).toFixed(1);
         resultado += `📊 Probabilidad estimada de ganar: ${porcentaje}%\n`;
@@ -115,11 +122,13 @@
         } else {
           claseColor = "rojo";
           emojiRiesgo = "🔴 Alta probabilidad de perder";
+          comentarioExtra = "ℹ️ Esta mano es difícil. Aunque la jugada parezca arriesgada, es estadísticamente la mejor opción.";
         }
       } else {
         resultado += `📊 Probabilidad no disponible\n`;
         claseColor = "rojo";
         emojiRiesgo = "🔴 Alta probabilidad de perder";
+        comentarioExtra = "ℹ️ Esta mano es difícil. Aunque la jugada parezca arriesgada, es estadísticamente la mejor opción.";
       }
 
       let recomendacion = "";
@@ -150,6 +159,10 @@
       }
 
       resultado += `${recomendacion}\n${emojiRiesgo}`;
+      if (comentarioExtra) {
+        resultado += `\n\n${comentarioExtra}`;
+      }
+
       const divResultado = document.getElementById("resultado");
       divResultado.className = claseColor;
       divResultado.innerText = resultado;
